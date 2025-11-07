@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 from PIL import Image
 import io
-import cv2  # For basic leaf-color validation
+import cv2
 
 # ----------------------------------------------------
 # FLASK SETUP
@@ -43,17 +43,20 @@ def init_db():
 init_db()
 
 # ----------------------------------------------------
-# LOAD TRAINED MODEL
+# LOAD MODEL SAFELY
 # ----------------------------------------------------
-try:
-    model = tf.keras.models.load_model(MODEL_PATH)
-    print("✅ Model loaded successfully!")
-except Exception as e:
-    print("❌ Error loading model:", e)
-    model = None
+model = None
+if os.path.exists(MODEL_PATH):
+    try:
+        model = tf.keras.models.load_model(MODEL_PATH)
+        print("✅ Model loaded successfully!")
+    except Exception as e:
+        print("❌ Error loading model:", e)
+else:
+    print(f"⚠️ Model file not found at path: {MODEL_PATH}")
 
 # ----------------------------------------------------
-# CLASS LABELS (38 classes from dataset)
+# CLASS LABELS (38 classes)
 # ----------------------------------------------------
 CLASS_NAMES = [
     'Apple___Apple_scab', 'Apple___Black_rot', 'Apple___Cedar_apple_rust', 'Apple___healthy',
@@ -74,10 +77,15 @@ CLASS_NAMES = [
 # IMAGE PREDICTION FUNCTION
 # ----------------------------------------------------
 def predict_disease(image_bytes, image_path):
+    if model is None:
+        print("⚠️ Model not loaded — cannot predict.")
+        return "Model Not Loaded", 0.0
+
     try:
-        # ---------- Step 1: Leaf Verification ----------
+        # ---------- Step 1: Verify leaf (basic green check)
         img_cv = cv2.imread(image_path)
         if img_cv is None:
+            print("⚠️ OpenCV could not read image:", image_path)
             return "Invalid Image", 0.0
 
         hsv = cv2.cvtColor(img_cv, cv2.COLOR_BGR2HSV)
@@ -87,23 +95,24 @@ def predict_disease(image_bytes, image_path):
         green_ratio = np.sum(mask > 0) / mask.size
 
         if green_ratio < 0.10:
+            print("🟡 Low green ratio:", green_ratio)
             return "Unknown (Not a Leaf Image)", 0.0
 
-        # ---------- Step 2: AI Prediction ----------
+        # ---------- Step 2: Model prediction ----------
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         img = img.resize((224, 224))
         img_array = np.array(img) / 255.0
         img_array = np.expand_dims(img_array, axis=0)
 
-        predictions = model.predict(img_array)
-        predicted_idx = np.argmax(predictions[0])
-        confidence = float(np.max(predictions[0])) * 100
+        preds = model.predict(img_array)
+        predicted_idx = np.argmax(preds[0])
+        confidence = float(np.max(preds[0]) * 100)
         disease_name = CLASS_NAMES[predicted_idx]
 
-        # ---------- Step 3: Confidence Threshold ----------
         if confidence < 60:
             disease_name = "Unknown / Low Confidence"
 
+        print(f"✅ Prediction done: {disease_name} ({confidence:.2f}%)")
         return disease_name, round(confidence, 2)
 
     except Exception as e:
@@ -119,39 +128,41 @@ def home():
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
-    if 'image' not in request.files:
-        return jsonify({'error': 'No image uploaded!'}), 400
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image uploaded!'}), 400
 
-    image = request.files['image']
-    if image.filename == '':
-        return jsonify({'error': 'No file selected!'}), 400
+        image = request.files['image']
+        if image.filename == '':
+            return jsonify({'error': 'No file selected!'}), 400
 
-    # Save uploaded file
-    filepath = os.path.join(UPLOAD_FOLDER, image.filename)
-    image.save(filepath)
+        filepath = os.path.join(UPLOAD_FOLDER, image.filename)
+        image.save(filepath)
 
-    # Predict
-    with open(filepath, "rb") as f:
-        image_bytes = f.read()
+        with open(filepath, "rb") as f:
+            image_bytes = f.read()
 
-    disease, confidence = predict_disease(image_bytes, filepath)
+        disease, confidence = predict_disease(image_bytes, filepath)
 
-    # Save to DB
-    conn = sqlite3.connect(DB_PATH)
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO uploads (filename, disease, confidence, timestamp) VALUES (?, ?, ?, ?)",
-        (image.filename, disease, confidence, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    )
-    conn.commit()
-    conn.close()
+        conn = sqlite3.connect(DB_PATH)
+        c = conn.cursor()
+        c.execute(
+            "INSERT INTO uploads (filename, disease, confidence, timestamp) VALUES (?, ?, ?, ?)",
+            (image.filename, disease, confidence, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        )
+        conn.commit()
+        conn.close()
 
-    return jsonify({
-        "message": "✅ Prediction successful!",
-        "filename": image.filename,
-        "disease": disease,
-        "confidence": confidence
-    })
+        return jsonify({
+            "message": "✅ Prediction successful!",
+            "filename": image.filename,
+            "disease": disease,
+            "confidence": confidence
+        })
+
+    except Exception as e:
+        print("❌ Upload error:", e)
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/history', methods=['GET'])
 def get_history():
