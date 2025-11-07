@@ -15,7 +15,7 @@ greenlet==3.2.4
 typing_extensions==4.15.0
 
 # Machine Learning / Deep Learning
-tensorflow-cpu==2.15.0
+tensorflow==2.13.0
 numpy==1.26.4
 pillow==10.3.0
 
