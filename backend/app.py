@@ -13,7 +13,12 @@ import cv2
 # FLASK SETUP
 # ----------------------------------------------------
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+
+# ✅ Allow only your Netlify frontend + localhost for testing
+CORS(app, origins=[
+    "https://plant-disease-detection-sid.netlify.app",
+    "http://localhost:5500"
+])
 
 UPLOAD_FOLDER = 'uploads'
 DB_PATH = 'history.db'
@@ -48,7 +53,7 @@ init_db()
 model = None
 if os.path.exists(MODEL_PATH):
     try:
-        model = tf.keras.models.load_model(MODEL_PATH)
+        model = tf.keras.models.load_model(MODEL_PATH, compile=False)
         print("✅ Model loaded successfully!")
     except Exception as e:
         print("❌ Error loading model:", e)
@@ -82,7 +87,7 @@ def predict_disease(image_bytes, image_path):
         return "Model Not Loaded", 0.0
 
     try:
-        # ---------- Step 1: Verify leaf (basic green check)
+        # ---------- Step 1: Verify leaf (basic green ratio check)
         img_cv = cv2.imread(image_path)
         if img_cv is None:
             print("⚠️ OpenCV could not read image:", image_path)
@@ -98,7 +103,7 @@ def predict_disease(image_bytes, image_path):
             print("🟡 Low green ratio:", green_ratio)
             return "Unknown (Not a Leaf Image)", 0.0
 
-        # ---------- Step 2: Model prediction ----------
+        # ---------- Step 2: Prediction ----------
         img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         img = img.resize((224, 224))
         img_array = np.array(img) / 255.0
@@ -188,4 +193,4 @@ def get_history():
 # RUN SERVER
 # ----------------------------------------------------
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
