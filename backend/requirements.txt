@@ -1,33 +1,29 @@
 # -------------------------------
-# 🌿 PLANT DISEASE DETECTION BACKEND REQUIREMENTS (Optimized for Render)
+# 🌿 PLANT DISEASE DETECTION BACKEND REQUIREMENTS
 # -------------------------------
 
-# Flask Core
+# Flask core
 Flask==3.1.2
 flask-cors==6.0.1
 Flask-SQLAlchemy==3.1.1
 Werkzeug==3.1.3
 itsdangerous==2.2.0
-click==8.1.7
+click==8.3.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
-greenlet==3.0.3
-typing_extensions==4.12.2
+greenlet==3.2.4
+typing_extensions==4.15.0
 
-# Machine Learning / Deep Learning (Lightweight CPU version)
-tensorflow-cpu==2.13.0
-numpy==1.23.5
+# Machine Learning / Deep Learning
+tensorflow==2.17.0
+numpy==1.26.4
 pillow==10.3.0
 
 # Database
 SQLAlchemy==2.0.44
 
-# Optional utilities
+# Optional: for structured data manipulation or debugging
 pandas==2.2.2
+
+# Optional utilities
 blinker==1.9.0
-
-# Image processing (headless for Render)
-opencv-python-headless==4.8.0.76
-
-# Production WSGI server (for Render deployment)
-gunicorn==21.2.0
