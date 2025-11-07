@@ -15,20 +15,26 @@ body {
 
 h1 {
   color: #00ff66;
-  text-shadow: 0 0 15px #00ff66;
-  font-size: 2.2em;
-  margin-bottom: 20px;
+  text-shadow: 0 0 20px #00ff66;
+  font-size: 2.4em;
+  margin-bottom: 25px;
   letter-spacing: 1px;
+  animation: glowPulse 3s infinite alternate;
 }
 
 /* 🌱 Upload Box */
 .upload-box {
-  background: rgba(0, 50, 0, 0.5);
+  background: rgba(0, 50, 0, 0.55);
   border-radius: 15px;
-  padding: 20px;
+  padding: 25px;
   display: inline-block;
   box-shadow: 0 0 25px #00ff55;
   animation: glowPulse 2s infinite alternate;
+  transition: transform 0.3s ease;
+}
+
+.upload-box:hover {
+  transform: scale(1.01);
 }
 
 /* 🌿 Buttons */
@@ -37,7 +43,7 @@ button {
   color: #000;
   border: none;
   border-radius: 8px;
-  padding: 10px 15px;
+  padding: 10px 18px;
   margin: 5px;
   cursor: pointer;
   font-weight: bold;
@@ -52,15 +58,15 @@ button:hover {
 
 /* 🧠 Result Box */
 .result-box {
-  margin-top: 20px;
-  background: rgba(0, 30, 0, 0.4);
-  padding: 15px;
+  margin-top: 25px;
+  background: rgba(0, 30, 0, 0.45);
+  padding: 18px;
   border: 1px solid #00ff55;
   border-radius: 10px;
   width: 60%;
   margin-left: auto;
   margin-right: auto;
-  box-shadow: 0 0 20px #00ff55;
+  box-shadow: 0 0 25px #00ff55;
   font-size: 1.1em;
 }
 
@@ -94,9 +100,9 @@ button:hover {
 
 /* 🧩 Prediction Section */
 .prediction-box {
-  margin-top: 30px;
-  padding: 20px;
-  background: rgba(0, 20, 0, 0.4);
+  margin-top: 35px;
+  padding: 25px;
+  background: rgba(0, 20, 0, 0.5);
   border: 1px solid #00ff55;
   border-radius: 15px;
   width: 60%;
@@ -104,11 +110,12 @@ button:hover {
   margin-right: auto;
   box-shadow: 0 0 25px #00ff55;
   opacity: 0;
-  animation: fadeIn 1s ease forwards;
+  animation: fadeIn 1.2s ease forwards;
 }
 
 .prediction-box h2 {
   text-shadow: 0 0 10px #00ff66;
+  margin-bottom: 15px;
 }
 
 .tips {
@@ -146,9 +153,14 @@ td {
   background-color: rgba(0, 40, 0, 0.4);
 }
 
-/* ⚙️ Loader Animation (Analyzing Leaf...) */
-.loader {
-  margin: 30px auto;
+/* ⚙️ Loader (AI Analyzing Animation) */
+.loading-spinner {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.spinner {
+  margin: 0 auto;
   border: 5px solid rgba(0, 255, 100, 0.2);
   border-top: 5px solid #00ff55;
   border-radius: 50%;
@@ -157,7 +169,7 @@ td {
   animation: spin 1.3s linear infinite, glowPulse 1.2s infinite alternate;
 }
 
-.loading-text {
+.loading-spinner p {
   color: #00ff55;
   font-weight: bold;
   margin-top: 15px;
@@ -185,7 +197,7 @@ td {
 
 /* 👣 Footer */
 footer {
-  margin-top: 40px;
+  margin-top: 50px;
   font-size: 0.9em;
   color: #66ff99;
   text-shadow: 0 0 5px #00ff55;
@@ -193,12 +205,8 @@ footer {
 
 /* ✨ Animations */
 @keyframes glowPulse {
-  from {
-    box-shadow: 0 0 15px #00ff55;
-  }
-  to {
-    box-shadow: 0 0 25px #00ff99, 0 0 35px #00ff55;
-  }
+  from { box-shadow: 0 0 15px #00ff55; }
+  to { box-shadow: 0 0 25px #00ff99, 0 0 35px #00ff55; }
 }
 
 @keyframes spin {
@@ -215,4 +223,36 @@ footer {
 @keyframes fadeIn {
   0% { opacity: 0; transform: scale(0.95); }
   100% { opacity: 1; transform: scale(1); }
+}
+
+/* 🧩 Result Colors */
+.success {
+  color: #00ff88;
+  text-shadow: 0 0 8px #00ff55;
+}
+
+.warning {
+  color: #ffcc00;
+  text-shadow: 0 0 8px #ffaa00;
+}
+
+.danger {
+  color: #ff5555;
+  text-shadow: 0 0 8px #ff2222;
+}
+
+/* 📱 Responsive Design */
+@media (max-width: 768px) {
+  .upload-box, .result-box, .prediction-box {
+    width: 85%;
+  }
+
+  #cameraFeed, .camera-preview img {
+    width: 280px;
+    height: 210px;
+  }
+
+  table {
+    width: 95%;
+  }
 }

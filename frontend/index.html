@@ -3,27 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Plant Disease Detection</title>
+  <title>🌿 AI Plant Disease Detection</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>🌿 AI-Powered Plant Disease Detection System</h1>
+    <h1>🌱 AI-Powered Plant Disease Detection System</h1>
 
-    <!-- Upload Section -->
-    <div class="upload-box">
+    <!-- 🌿 Upload Section -->
+    <section class="upload-box">
       <h3>Select or Capture an Image</h3>
 
       <div class="button-group">
         <!-- File Input -->
         <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)" style="display:none;">
-        <button onclick="document.getElementById('fileInput').click()">📁 Choose from Files</button>
-        <button onclick="startCamera()">📸 Open Camera</button>
+        <button aria-label="Upload from files" onclick="document.getElementById('fileInput').click()">📁 Choose from Files</button>
+        <button aria-label="Open camera" onclick="startCamera()">📸 Open Camera</button>
       </div>
 
-      <!-- Camera Section -->
+      <!-- 📷 Camera Section -->
       <div id="cameraContainer" class="camera-container" style="display:none;">
-        <video id="cameraFeed" autoplay></video>
+        <video id="cameraFeed" autoplay playsinline></video>
         <canvas id="cameraCanvas" style="display:none;"></canvas>
 
         <div class="camera-buttons">
@@ -36,31 +36,38 @@
         </div>
       </div>
 
-      <!-- Upload Button -->
+      <!-- ⬆️ Upload Button -->
       <button id="uploadBtn" onclick="uploadImage()" disabled>⬆️ Upload Image</button>
+    </section>
+
+    <!-- 🌀 Loading Spinner -->
+    <div id="loading" class="loading-spinner" style="display:none;">
+      <div class="spinner"></div>
+      <p class="loading-text">🧠 Analyzing Leaf... Please wait</p>
+      <div class="progress-container"><div class="progress-bar"></div></div>
     </div>
 
-    <!-- Upload Status -->
+    <!-- ✅ Upload Status -->
     <div id="result" class="result-box"></div>
 
-    <!-- Prediction Result Section -->
-    <div id="predictionResult" class="prediction-box" style="display:none;">
-      <h2>🧠 Prediction Result</h2>
+    <!-- 🤖 Prediction Result Section -->
+    <section id="predictionResult" class="prediction-box" style="display:none;">
+      <h2>🧩 Prediction Result</h2>
       <p id="diseaseName">🌿 Disease: -</p>
       <p id="confidenceScore">📈 Confidence: -</p>
       <p id="preventionTips" class="tips"></p>
-    </div>
+    </section>
 
-    <!-- History Section -->
-    <div id="historyContainer" class="history-box">
+    <!-- 📜 History Section -->
+    <section id="historyContainer" class="history-box">
       <button onclick="loadHistory()">📜 View Upload History</button>
       <div id="historyTable"></div>
-    </div>
+    </section>
 
-    <!-- About Section -->
+    <!-- 👨‍💻 About Section -->
     <footer>
       <p>💻 Developed by <strong>Siddharth Mishra</strong></p>
-      <p>Tech Stack: Python (Flask) | HTML | CSS | JavaScript | SQLite</p>
+      <p>🧠 Tech Stack: Python (Flask) | TensorFlow | HTML | CSS | JavaScript | SQLite</p>
     </footer>
   </div>
 

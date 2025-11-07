@@ -13,8 +13,9 @@ function handleFileSelect(event) {
   if (file) {
     selectedFile = file;
     capturedViaCamera = false;
-    document.getElementById('uploadBtn').disabled = false;
-    document.getElementById('result').innerText = "✅ File selected. Ready to upload.";
+    document.getElementById("uploadBtn").disabled = false;
+    document.getElementById("result").innerText =
+      "✅ File selected. Ready to upload.";
   }
 }
 
@@ -25,9 +26,9 @@ async function startCamera() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     cameraStream = stream;
-    const video = document.getElementById('cameraFeed');
+    const video = document.getElementById("cameraFeed");
     video.srcObject = stream;
-    document.getElementById('cameraContainer').style.display = 'block';
+    document.getElementById("cameraContainer").style.display = "block";
     cameraActive = true;
   } catch (err) {
     alert("⚠️ Camera access denied or unavailable.");
@@ -36,119 +37,145 @@ async function startCamera() {
 }
 
 function captureImage() {
-  const video = document.getElementById('cameraFeed');
-  const canvas = document.getElementById('cameraCanvas');
-  const context = canvas.getContext('2d');
+  const video = document.getElementById("cameraFeed");
+  const canvas = document.getElementById("cameraCanvas");
+  const context = canvas.getContext("2d");
 
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   // Convert image to blob for upload
-  canvas.toBlob(blob => {
-    selectedFile = new File([blob], "captured.jpg", { type: "image/jpeg" });
-    capturedViaCamera = true;
+  canvas.toBlob(
+    (blob) => {
+      selectedFile = new File([blob], "captured.jpg", { type: "image/jpeg" });
+      capturedViaCamera = true;
 
-    // Show preview while keeping camera on
-    const previewImg = document.getElementById('capturedImage');
-    previewImg.src = URL.createObjectURL(blob);
-    document.getElementById('cameraPreview').style.display = 'block';
-    document.getElementById('retakeBtn').style.display = 'inline-block';
-    document.getElementById('uploadBtn').disabled = false;
-  }, 'image/jpeg');
+      // Show preview while keeping camera on
+      const previewImg = document.getElementById("capturedImage");
+      previewImg.src = URL.createObjectURL(blob);
+      document.getElementById("cameraPreview").style.display = "block";
+      document.getElementById("retakeBtn").style.display = "inline-block";
+      document.getElementById("uploadBtn").disabled = false;
+    },
+    "image/jpeg",
+    0.9
+  );
 }
 
 function retakeImage() {
   selectedFile = null;
-  document.getElementById('cameraPreview').style.display = 'none';
-  document.getElementById('retakeBtn').style.display = 'none';
-  document.getElementById('uploadBtn').disabled = true;
-  document.getElementById('result').innerText = "🔁 Ready to capture a new photo.";
+  document.getElementById("cameraPreview").style.display = "none";
+  document.getElementById("retakeBtn").style.display = "none";
+  document.getElementById("uploadBtn").disabled = true;
+  document.getElementById("result").innerText =
+    "🔁 Ready to capture a new photo.";
 }
 
 // ------------------- UPLOAD -------------------
 
 async function uploadImage() {
-  const resultDiv = document.getElementById('result');
+  const resultDiv = document.getElementById("result");
+  const loadingDiv = document.getElementById("loading");
+  const predictionDiv = document.getElementById("predictionResult");
+
   if (!selectedFile) {
     resultDiv.innerText = "⚠️ Please select or capture an image first!";
     return;
   }
 
   const formData = new FormData();
-  formData.append('image', selectedFile);
+  formData.append("image", selectedFile);
 
-  // Show analyzing animation before upload
-  resultDiv.innerHTML = `
-    <div class="loader"></div>
-    <p class="loading-text">Analyzing Leaf...</p>
-    <div class="progress-container">
-      <div class="progress-bar"></div>
-    </div>
-  `;
+  // Show loading spinner
+  loadingDiv.style.display = "block";
+  resultDiv.innerText = "";
+  predictionDiv.style.display = "none";
 
-  // Simulate AI processing delay
-  setTimeout(async () => {
-    try {
-      const response = await fetch(`${backendBase}/upload`, {
-        method: "POST",
-        body: formData
-      });
-      const data = await response.json();
+  try {
+    const response = await fetch(`${backendBase}/upload`, {
+      method: "POST",
+      body: formData,
+    });
 
-      if (data.message) {
-        resultDiv.innerText = "✅ " + data.message;
-        showPrediction(data.disease || "Processing...", data.confidence || "0.0");
+    const data = await response.json();
 
-        // ✅ Turn off camera after upload
-        if (capturedViaCamera && cameraStream) {
-          cameraStream.getTracks().forEach(track => track.stop());
-          cameraStream = null;
-          cameraActive = false;
-          document.getElementById('cameraFeed').srcObject = null;
-          document.getElementById('cameraContainer').style.display = 'none';
-          capturedViaCamera = false;
-        }
+    // Hide spinner
+    loadingDiv.style.display = "none";
 
-      } else {
-        resultDiv.innerText = "❌ " + data.error;
+    if (data.message) {
+      resultDiv.innerHTML = `<span class="success">✅ ${data.message}</span>`;
+      showPrediction(data.disease || "Processing...", data.confidence || 0);
+
+      // Stop camera if active
+      if (capturedViaCamera && cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+        cameraStream = null;
+        cameraActive = false;
+        document.getElementById("cameraFeed").srcObject = null;
+        document.getElementById("cameraContainer").style.display = "none";
+        capturedViaCamera = false;
       }
-    } catch (error) {
-      resultDiv.innerText = "❌ Error connecting to backend!";
-      console.error(error);
+    } else {
+      resultDiv.innerHTML = `<span class="danger">❌ ${
+        data.error || "Unexpected error!"
+      }</span>`;
     }
-  }, 2500); // 2.5s animation before showing result
+  } catch (error) {
+    console.error("Upload error:", error);
+    loadingDiv.style.display = "none";
+    resultDiv.innerHTML =
+      '<span class="danger">❌ Error connecting to backend!</span>';
+  }
 }
 
 // ------------------- PREDICTION DISPLAY -------------------
 
 function showPrediction(disease, confidence) {
-  const resultBox = document.getElementById('predictionResult');
-  document.getElementById('diseaseName').innerText = `🌿 Disease: ${disease}`;
-  document.getElementById('confidenceScore').innerText = `📈 Confidence: ${confidence.toFixed ? confidence.toFixed(2) : confidence}%`;
+  const resultBox = document.getElementById("predictionResult");
+  const diseaseText = document.getElementById("diseaseName");
+  const confidenceText = document.getElementById("confidenceScore");
+  const tipsText = document.getElementById("preventionTips");
+
+  diseaseText.innerText = `🌿 Disease: ${disease}`;
+  confidenceText.innerText = `📈 Confidence: ${
+    confidence.toFixed ? confidence.toFixed(2) : confidence
+  }%`;
 
   const tips = {
     "Tomato Early Blight": "🪴 Use neem oil and remove infected leaves.",
-    "Potato Late Blight": "🌦 Avoid water on leaves; apply copper-based fungicide.",
+    "Potato Late Blight":
+      "🌦 Avoid water on leaves; apply copper-based fungicide.",
     "Apple Scab": "🍎 Prune infected branches; ensure good air flow.",
     "Corn Rust": "🌽 Rotate crops and use resistant hybrids.",
     "Healthy Leaf": "✅ No issues detected. Maintain regular watering.",
     "Mango Anthracnose": "🥭 Spray with copper fungicide during flowering.",
-    "Pepper Bell Bacterial Spot": "🌶️ Avoid overhead watering; use disease-free seeds."
+    "Pepper Bell Bacterial Spot":
+      "🌶️ Avoid overhead watering; use disease-free seeds.",
   };
 
-  document.getElementById('preventionTips').innerText =
-    tips[disease] || "💡 Keep monitoring and ensure proper sunlight and water balance.";
+  tipsText.innerText =
+    tips[disease] ||
+    "💡 Keep monitoring and ensure proper sunlight and water balance.";
 
-  // Smooth fade-in effect
-  resultBox.style.display = 'block';
-  resultBox.style.animation = 'fadeIn 1.2s ease forwards';
+  // Apply result color logic
+  if (disease.toLowerCase().includes("healthy")) {
+    diseaseText.className = "success";
+  } else if (confidence < 70) {
+    diseaseText.className = "warning";
+  } else {
+    diseaseText.className = "danger";
+  }
+
+  // Smooth fade-in
+  resultBox.style.display = "block";
+  resultBox.style.animation = "fadeIn 1.2s ease forwards";
 }
 
 // ------------------- HISTORY -------------------
 
 async function loadHistory() {
-  const historyDiv = document.getElementById('historyTable');
+  const historyDiv = document.getElementById("historyTable");
   historyDiv.innerHTML = "<p>⏳ Loading history...</p>";
 
   try {
@@ -170,9 +197,16 @@ async function loadHistory() {
           <th>Confidence</th>
           <th>Timestamp</th>
         </tr>`;
-    history.forEach(item => {
+
+    history.forEach((item) => {
+      const colorClass = item.disease.toLowerCase().includes("healthy")
+        ? "success"
+        : item.confidence < 70
+        ? "warning"
+        : "danger";
+
       tableHTML += `
-        <tr>
+        <tr class="${colorClass}">
           <td>${item.id}</td>
           <td>${item.filename}</td>
           <td>${item.disease}</td>
@@ -180,10 +214,11 @@ async function loadHistory() {
           <td>${item.timestamp}</td>
         </tr>`;
     });
+
     tableHTML += "</table>";
     historyDiv.innerHTML = tableHTML;
   } catch (error) {
-    console.error(error);
+    console.error("History fetch error:", error);
     historyDiv.innerHTML = "<p>❌ Error loading history!</p>";
   }
 }
