@@ -28,4 +28,8 @@ pandas==2.2.2
 # Optional utilities
 blinker==1.9.0
 
-opencv-python==4.10.0.84
+# Image processing
+opencv-python-headless==4.10.0.84
+
+# ✅ For production deployment (required by Render)
+gunicorn==21.2.0
