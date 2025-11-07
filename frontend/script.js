@@ -1,5 +1,5 @@
-// 🌿 Backend Base URL (Update if Codespace URL changes)
-const backendBase = "https://orange-spoon-7vvjq4jgv5qv3r44g-5000.app.github.dev";
+// 🌿 Backend Base URL (Render Deployment)
+const backendBase = "https://plant-disease-detection-c0s9.onrender.com";
 
 let selectedFile = null;
 let cameraStream = null;
@@ -57,6 +57,8 @@ function captureImage() {
       document.getElementById("cameraPreview").style.display = "block";
       document.getElementById("retakeBtn").style.display = "inline-block";
       document.getElementById("uploadBtn").disabled = false;
+      document.getElementById("result").innerText =
+        "📸 Image captured successfully!";
     },
     "image/jpeg",
     0.9
@@ -97,6 +99,10 @@ async function uploadImage() {
       method: "POST",
       body: formData,
     });
+
+    if (!response.ok) {
+      throw new Error("Server error. Please try again later.");
+    }
 
     const data = await response.json();
 
@@ -180,6 +186,8 @@ async function loadHistory() {
 
   try {
     const response = await fetch(`${backendBase}/history`);
+    if (!response.ok) throw new Error("Failed to fetch history.");
+
     const data = await response.json();
     const history = data.history;
 
